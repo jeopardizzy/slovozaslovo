@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Слово за слово</title>
+<style>
+:root{--bg:#faf5ee;--card:#fffdf9;--ink:#2f4747;--mute:#6d8080;--sage:#6f9b84;--sage2:#e3eee7;--terra:#d68a67;--terra2:#f8e6dc;--line:#e6ddd0;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d2826;--card:#25332f;--ink:#eaf1ec;--mute:#9db1a8;--sage:#86b79d;--sage2:#2f4540;--terra:#e39c7a;--terra2:#43332c;--line:#364a44;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1d2826;--card:#25332f;--ink:#eaf1ec;--mute:#9db1a8;--sage:#86b79d;--sage2:#2f4540;--terra:#e39c7a;--terra2:#43332c;--line:#364a44;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Georgia,"Times New Roman",serif}
+main{max-width:680px;margin:0 auto;padding:18px 16px 40px}
+h1{font-size:30px;margin:6px 0 2px;letter-spacing:.3px}
+h1 span{color:var(--terra)}
+.sub{color:var(--mute);margin:0 0 18px;font-size:15px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:12px}
+button{font:inherit;border:0;border-radius:12px;padding:10px 16px;cursor:pointer;background:var(--sage);color:#fff}
+button.alt{background:var(--terra)}
+button.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+button:disabled{opacity:.5}
+.who{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.who button{padding:18px 6px;font-size:18px;background:var(--sage2);color:var(--ink)}
+input[type=password],input[type=text]{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);margin:8px 0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.sp{justify-content:space-between}
+.chip{padding:6px 12px;border-radius:999px;background:var(--card);color:var(--ink);border:1px solid var(--line);font-size:14px}
+.chip.on{background:var(--sage);color:#fff;border-color:var(--sage)}
+.lbl{font-size:13px;color:var(--mute);margin:12px 0 6px;text-transform:uppercase;letter-spacing:.8px}
+.t{display:flex;gap:12px;align-items:flex-start;padding:14px;cursor:pointer}
+.t.done{opacity:.55}
+.t p{margin:0 0 6px}
+.tag{font-size:12px;padding:2px 9px;border-radius:999px;background:var(--sage2);margin-right:6px;display:inline-block}
+.tag.d1{background:#e3eee7;color:#2f5d46}.tag.d2{background:#f8ecd0;color:#7a5a10}.tag.d3{background:var(--terra2);color:#9b4a26}
+.tag.src{background:transparent;border:1px dashed var(--line);color:var(--mute)}
+.ck{width:26px;height:26px;border-radius:8px;border:2px solid var(--sage);flex:none;display:grid;place-items:center;color:#fff;font-size:15px;background:transparent}
+.ck.on{background:var(--sage)}
+.big{font-size:22px;line-height:1.4;margin:10px 0 14px}
+.tm{font-size:64px;text-align:center;font-variant-numeric:tabular-nums;color:var(--terra);margin:8px 0}
+.err{color:#c0503a;font-size:14px;min-height:20px}
+.note{font-size:13px;color:var(--mute)}
+.who2{font-size:14px;color:var(--mute)}
+label.c{display:flex;gap:8px;font-size:14px;align-items:flex-start;margin:6px 0}
+</style>
+</head>
+<body>
+<main>
+<h1>Слово <span>за</span> слово</h1>
+<p class="sub">Темы для дебатов: выбирай сам или доверься случаю</p>
+<div id="app"></div>
+</main>
+<script>
+const NAMES={misha:"Миша",emily:"Эмили",danya:"Даня"};
+const DL=["","Лёгкая","Средняя","Сложная"];
+const CATS=["Экономика","Политика","Общество","Этика","Технологии","Образование","Спорт","Международка","Культура и медиа","Экология"];
+// s: 1 = из канала @hse_debates, 0 = добавлено по аналогии
+const T=[
+[1,"ЭП вместо создания государственного сектора услуг в развивающихся странах будет предоставлять всем гражданам этих стран ваучеры для оплаты услуг здравоохранения, образования и социального обеспечения, предоставляемых частными компаниями","Экономика",3,1],
+[2,"ЭП сожалеет о нарративе «нужно уметь продавать себя»","Общество",2,1],
+[3,"ЭП поддерживает отмену женских категорий в нефизических спортивных дисциплинах (например, шахматы и киберспорт)","Спорт",2,1],
+[4,"ЭП запретит пластические операции, проводимые с целью улучшения внешности","Этика",2,1],
+[5,"ЭП введёт безусловный базовый доход вместо системы социальных пособий","Экономика",3,0],
+[6,"ЭП сожалеет о росте экономики подписок и гиг-занятости","Экономика",2,0],
+[7,"ЭП введёт четырёхдневную рабочую неделю на государственном уровне","Экономика",1,0],
+[8,"ЭП введёт налог в размере 70% на сверхвысокие доходы","Экономика",2,0],
+[9,"ЭП введёт обязательное голосование на национальных выборах","Политика",2,0],
+[10,"ЭП снизит возраст голосования до 16 лет","Политика",1,0],
+[11,"ЭП ограничит пребывание политика у власти двумя сроками во всех демократиях","Политика",1,0],
+[12,"ЭП поддерживает создание единой армии Европейского союза","Политика",3,0],
+[13,"ЭП сожалеет о культуре «отмены»","Общество",2,0],
+[14,"ЭП запретит рекламу, ориентированную на детей до 12 лет","Общество",1,0],
+[15,"ЭП сожалеет о приоритете карьеры над семьёй в современном обществе","Общество",2,0],
+[16,"ЭП разрешит эвтаназию для неизлечимо больных совершеннолетних","Этика",3,0],
+[17,"ЭП считает, что благотворительность следует направлять на самые эффективные цели, а не на близкие сердцу","Этика",3,0],
+[18,"ЭП запретит содержание животных в зоопарках","Этика",1,0],
+[19,"ЭП запретит использование ИИ при выполнении школьных заданий","Технологии",1,0],
+[20,"ЭП введёт обязательную маркировку контента, созданного ИИ","Технологии",2,0],
+[21,"ЭП сожалеет о превращении соцсетей в основной источник новостей","Технологии",2,0],
+[22,"ЭП запретит распознавание лиц в общественных местах","Технологии",3,0],
+[23,"ЭП отменит домашние задания в начальной школе","Образование",1,0],
+[24,"ЭП заменит школьные оценки качественной обратной связью","Образование",2,0],
+[25,"ЭП запретит ставки на спорт","Спорт",1,0],
+[26,"ЭП поддерживает отмену законодательно установленной минимальной оплаты труда","Экономика",3,0],
+[27,"ЭП запретит компаниям выкупать собственные акции","Экономика",3,0],
+[28,"ЭП введёт налог на замену рабочих мест роботами","Экономика",3,0],
+[29,"ЭП запретит импорт товаров, произведённых с нарушением трудовых прав","Экономика",2,0],
+[30,"ЭП национализирует ключевые инфраструктурные отрасли (энергетику, транспорт)","Экономика",2,0],
+[31,"ЭП введёт потолок арендной платы на жильё в крупных городах","Экономика",2,0],
+[32,"ЭП сожалеет о глобализации","Экономика",2,0],
+[33,"ЭП заменит наличные деньги цифровой валютой центрального банка","Экономика",3,0],
+[34,"ЭП запретит иностранное финансирование политических партий","Политика",2,0],
+[35,"ЭП будет формировать верхнюю палату парламента жеребьёвкой среди граждан","Политика",3,0],
+[36,"ЭП поддерживает переход к парламентской форме правления в молодых демократиях","Политика",3,0],
+[37,"ЭП разрешит интернет-голосование на национальных выборах","Политика",2,0],
+[38,"ЭП введёт обязательный экзамен по основам политики для избирателей","Политика",3,0],
+[39,"ЭП запретит частные пожертвования на предвыборные кампании","Политика",2,0],
+[40,"ЭП поддерживает право регионов на отделение демократическим путём","Политика",3,0],
+[41,"ЭП запретит бывшим политикам работать в лоббистских организациях","Политика",1,0],
+[42,"ЭП сожалеет о культе продуктивности","Общество",2,0],
+[43,"ЭП декриминализует хранение лёгких наркотиков для личного потребления","Общество",3,0],
+[44,"ЭП сожалеет о распространении удалённой работы","Общество",2,0],
+[45,"ЭП введёт налог на сладкие напитки и фастфуд","Общество",1,0],
+[46,"ЭП запретит государственным служащим носить религиозные символы при исполнении обязанностей","Общество",3,0],
+[47,"ЭП сожалеет о романтизации культуры хастла","Общество",2,0],
+[48,"ЭП введёт гендерные квоты в советах директоров крупных компаний","Общество",2,0],
+[49,"ЭП введёт комендантский час для несовершеннолетних","Общество",1,0],
+[50,"ЭП разрешит продажу органов для трансплантации по рыночным ценам","Этика",3,0],
+[51,"ЭП считает, что искусство нельзя отделять от личности автора","Этика",2,0],
+[52,"ЭП разрешит генетическое редактирование эмбрионов для устранения наследственных болезней","Этика",3,0],
+[53,"ЭП считает, что мы обязаны помогать незнакомцам в той же мере, что и близким","Этика",3,0],
+[54,"ЭП запретит сбор средств на лечение через соцсети","Этика",2,0],
+[55,"ЭП сожалеет о привычке судить людей прошлого по современным моральным стандартам","Этика",2,0],
+[56,"ЭП разрешит коммерческое суррогатное материнство","Этика",3,0],
+[57,"ЭП запретит автономное боевое оружие с искусственным интеллектом","Технологии",3,0],
+[58,"ЭП обяжет компании раскрывать алгоритмы рекомендаций","Технологии",2,0],
+[59,"ЭП запретит регистрацию в соцсетях до 16 лет","Технологии",2,0],
+[60,"ЭП сожалеет об экономике внимания","Технологии",2,0],
+[61,"ЭП разрешит беспилотный транспорт без водителя на всех дорогах","Технологии",2,0],
+[62,"ЭП закрепит право человека требовать удаления данных о себе из интернета","Технологии",2,0],
+[63,"ЭП сожалеет о распространении ИИ-компаньонов, заменяющих человеческое общение","Технологии",2,0],
+[64,"ЭП сделает высшее образование бесплатным для всех","Образование",2,0],
+[65,"ЭП отменит единые экзамены при поступлении в вузы","Образование",2,0],
+[66,"ЭП сделает финансовую грамотность обязательным школьным предметом","Образование",1,0],
+[67,"ЭП перенесёт начало школьных занятий на 10 утра","Образование",1,0],
+[68,"ЭП снимет ограничения на домашнее обучение","Образование",2,0],
+[69,"ЭП введёт раздельное обучение мальчиков и девочек","Образование",3,0],
+[70,"ЭП разрешит допинг в профессиональном спорте под медицинским контролем","Спорт",3,0],
+[71,"ЭП запретит проводить Олимпийские игры в странах с нарушениями прав человека","Спорт",3,0],
+[72,"ЭП введёт потолок зарплат в профессиональных спортивных лигах","Спорт",2,0],
+[73,"ЭП сожалеет о коммерциализации любительского спорта","Спорт",2,0],
+[74,"ЭП считает, что экономические санкции — неэффективный инструмент внешней политики","Международка",2,0],
+[75,"ЭП поддерживает гуманитарные интервенции без одобрения Совета Безопасности ООН","Международка",3,0],
+[76,"ЭП отменит право вето в Совете Безопасности ООН","Международка",3,0],
+[77,"ЭП поддерживает политику открытых границ","Международка",3,0],
+[78,"ЭП считает, что бывшие колониальные державы должны выплачивать компенсации","Международка",3,0],
+[79,"ЭП считает, что международная помощь приносит развивающимся странам больше вреда, чем пользы","Международка",2,0],
+[80,"ЭП сожалеет о доминировании стриминговых сервисов в кино и музыке","Культура и медиа",1,0],
+[81,"ЭП запретит публиковать подробности частной жизни публичных людей без их согласия","Культура и медиа",2,0],
+[82,"ЭП сожалеет о превращении новостей в развлечение","Культура и медиа",2,0],
+[83,"ЭП введёт государственное финансирование искусства","Культура и медиа",1,0],
+[84,"ЭП введёт высокие налоги на авиаперелёты ради климата","Экология",2,0],
+[85,"ЭП поддерживает атомную энергетику как основной путь декарбонизации","Экология",3,0],
+[86,"ЭП сожалеет о культуре личной ответственности за климат (сортировка мусора, отказ от пластика)","Экология",2,0],
+[87,"ЭП запретит одноразовый пластик","Экология",1,0]
+].map(a=>({id:a[0],t:a[1],c:a[2],d:a[3],s:a[4]}));
+const INFO={
+1:"Ваучер — целевой документ: государство даёт гражданину право оплатить услугу у выбранного частного поставщика, а затем возмещает ему стоимость. Государственный сектор, напротив, предоставляет услуги напрямую.",
+2:"Нарратив «нужно уметь продавать себя»: человек должен заботиться о благоприятном впечатлении в каждом взаимодействии (обед с коллегами, свидание). Он распространяется через бизнес-литературу, тренинги личностного роста и т. п.",
+3:"Женские категории вводились для поддержки участниц там, где женщин среди игроков мало. Нефизические дисциплины — те, где результат определяется не силой и выносливостью.",
+5:"Безусловный базовый доход — регулярная выплата всем гражданам независимо от дохода и занятости. Эксперименты проводились, например, в Финляндии (2017–2018).",
+12:"Сейчас оборона остаётся в компетенции государств-членов ЕС; многие из них одновременно состоят в НАТО.",
+16:"Эвтаназия — прекращение жизни по просьбе пациента, чтобы избавить его от страданий. Легальна в ряде стран (например, в Нидерландах и Бельгии), в большинстве — запрещена.",
+26:"В ряде стран (например, в Дании и Швеции) общенационального законного МРОТ нет: ставки определяются коллективными договорами.",
+27:"Выкуп акций — покупка компанией собственных акций на рынке; сокращает их число в обращении и нередко повышает доход оставшихся акционеров.",
+31:"Потолок арендной платы — законодательное ограничение её размера или роста. Применялся, например, в Берлине (2020–2021, отменён судом) и в ряде городов США.",
+33:"Цифровая валюта центробанка (CBDC) — цифровая форма национальной валюты, выпускаемая центральным банком, в отличие от безналичных денег на счетах коммерческих банков.",
+35:"Жеребьёвка (сортиция) — выбор представителей случайным отбором граждан. Применялась в Афинах V–IV вв. до н. э. и в современных гражданских ассамблеях.",
+37:"С 2005 года Эстония допускает интернет-голосование на выборах.",
+43:"Декриминализация — снятие уголовной ответственности за хранение небольших доз для личного потребления; продажа остаётся незаконной. Это не то же, что легализация. Португалия сделала так в 2001 году.",
+48:"Квота — требование закона, чтобы доля директоров каждого пола не опускалась ниже порога. Норвегия первой ввела квоту в 40% для советов директоров публичных компаний (закон 2003 года).",
+50:"Продажа органов почти везде запрещена. Иран обычно называют единственной страной с регулируемой системой вознаграждения живых доноров почки.",
+57:"Автономное боевое оружие — системы, способные выбирать цели и применять силу без решения человека в каждый момент. Вопрос регулирования обсуждается при ООН в рамках Конвенции о конкретных видах обычного оружия.",
+62:"«Право на забвение» закреплено в Общем регламенте ЕС по защите данных (GDPR, с 2018 года): при определённых условиях можно потребовать удаления своих данных.",
+76:"У пяти постоянных членов Совбеза ООН (США, России, Китая, Великобритании, Франции) есть право вето: одного голоса «против» достаточно, чтобы резолюция не прошла."
+};
+
+const $=document.getElementById("app");
+const S={user:null,rec:null,done:new Set(),cat:"Все",diff:0,hide:false,cur:null,end:0,iv:null,note:"",db:null};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const lsGet=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+const lsSet=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));return 1}catch(e){return 0}};
+async function hash(s){try{const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode("szs:"+s));return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("")}catch(e){let h=0;for(const ch of "szs:"+s)h=(h*31+ch.charCodeAt(0))|0;return "w"+h}}
+
+// облачный backup (если доступен) + копия в браузере
+S.ready=(async()=>{try{S.db=await claude.use("db")}catch(e){S.db=null}})();
+
+function home(err){
+  clearInterval(S.iv);S.user=null;
+  $.innerHTML='<div class="card"><div class="lbl" style="margin-top:0">Кто играет?</div><div class="who">'+
+  Object.entries(NAMES).map(([k,v])=>'<button data-u="'+k+'">'+v+'</button>').join("")+
+  '</div></div><p class="note">У каждого свой логин с PIN-кодом: прогресс «обсуждено» сохраняется отдельно и восстанавливается при входе.</p>';
+  $.querySelectorAll("[data-u]").forEach(b=>b.onclick=()=>pick(b.dataset.u));
+}
+async function pick(u){
+  await S.ready;let rec=null;
+  if(S.db){try{const s=await S.db.doc("users/"+u).get();if(s.exists)rec=s.data()}catch(e){}}
+  if(!rec)rec=lsGet("szs_"+u);
+  S.pend=u;S.rec=rec;pin("");
+}
+function pin(err){
+  const u=S.pend,n=NAMES[u],has=!!S.rec;
+  $.innerHTML='<div class="card"><div class="lbl" style="margin-top:0">'+n+'</div>'+
+  '<div>'+(has?"Введи свой PIN, чтобы войти":"Придумай PIN (минимум 4 символа) для входа")+'</div>'+
+  '<input id="pn" type="password" autocomplete="off" inputmode="numeric" placeholder="PIN">'+
+  (has?"":'<label class="c"><input id="cs" type="checkbox"> Я согласен(на) на хранение моего прогресса (какие темы обсуждены) для резервной копии</label>')+
+  '<div class="err">'+esc(err||"")+'</div><div class="row"><button id="go">'+(has?"Войти":"Создать профиль")+'</button><button class="ghost" id="bk">Назад</button></div>'+
+  '<p class="note">PIN защищает от случайного входа, но это не банковская защита: не используй важные пароли.</p></div>';
+  document.getElementById("bk").onclick=home;
+  const go=async()=>{
+    const p=document.getElementById("pn").value;
+    if(p.length<4)return pin("Нужно минимум 4 символа");
+    const h=await hash(u+p);
+    if(has){if(S.rec.pin!==h)return pin("Неверный PIN")}
+    else{if(!document.getElementById("cs").checked)return pin("Нужно согласие на сохранение прогресса");S.rec={pin:h,done:[]}}
+    S.user=u;S.done=new Set(S.rec.done||[]);S.note="";await save();list();
+  };
+  document.getElementById("go").onclick=go;
+  document.getElementById("pn").onkeydown=e=>{if(e.key==="Enter")go()};
+}
+async function save(){
+  S.rec.done=[...S.done];const ok=lsSet("szs_"+S.user,S.rec);
+  const dev=ok?"прогресс сохранён только на этом устройстве.":"прогресс НЕ сохраняется (нет ни облака, ни памяти браузера).";
+  if(!S.db)S.note="⚠️ Облако недоступно (нужно открыть страницу, войдя в claude.ai): "+dev;
+  else try{await S.db.doc("users/"+S.user).set(S.rec);S.note="☁️ Сохранено в облаке"}catch(e){S.note="⚠️ Облако не записало ("+((e&&e.code)||"ошибка")+"): "+dev}
+}
+const vis=()=>T.filter(x=>(S.cat==="Все"||x.c===S.cat)&&(!S.diff||x.d===S.diff)&&(!S.hide||!S.done.has(x.id)));
+function list(){
+  clearInterval(S.iv);S.cur=null;
+  const v=vis(),left=T.filter(x=>!S.done.has(x.id)).length;
+  $.innerHTML='<div class="row sp"><div class="who2">Привет, <b>'+NAMES[S.user]+'</b> · обсуждено '+S.done.size+' из '+T.length+'</div><button class="ghost" id="out">Выйти</button></div>'+
+  (S.note?'<p class="note">'+S.note+'</p>':"")+
+  '<div class="lbl">Тема</div><div class="row">'+["Все",...CATS].map(c=>'<button class="chip'+(S.cat===c?" on":"")+'" data-c="'+c+'">'+c+'</button>').join("")+'</div>'+
+  '<div class="lbl">Сложность</div><div class="row">'+[0,1,2,3].map(d=>'<button class="chip'+(S.diff===d?" on":"")+'" data-d="'+d+'">'+(d?DL[d]:"Любая")+'</button>').join("")+'</div>'+
+  '<div class="row" style="margin:14px 0"><button class="alt" id="rnd">🎲 Случайная тема</button><label class="c" style="margin:0"><input type="checkbox" id="hd"'+(S.hide?" checked":"")+'> скрыть обсуждённые</label></div>'+
+  '<div class="note" style="margin-bottom:8px">Найдено тем: '+v.length+(left?"":" · всё обсуждено, браво!")+'</div>'+
+  (v.length?v.map(x=>card(x)).join(""):'<div class="card">По этим фильтрам тем нет. Попробуй другие.</div>');
+  document.getElementById("out").onclick=home;
+  $.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>{S.cat=b.dataset.c;list()});
+  $.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{S.diff=+b.dataset.d;list()});
+  document.getElementById("hd").onchange=e=>{S.hide=e.target.checked;list()};
+  document.getElementById("rnd").onclick=()=>{const p=vis().filter(x=>!S.done.has(x.id));if(!p.length){S.note="Нет необсуждённых тем по этим фильтрам.";return list()}S.note="";open_(p[Math.floor(Math.random()*p.length)].id)};
+  $.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>open_(+b.dataset.o));
+  $.querySelectorAll("[data-k]").forEach(b=>b.onclick=e=>{e.stopPropagation();tog(+b.dataset.k,true)});
+}
+function card(x){const dn=S.done.has(x.id);
+  return '<div class="card t'+(dn?" done":"")+'" data-o="'+x.id+'"><div style="flex:1"><p>'+esc(x.t)+'</p><span class="tag">'+x.c+'</span><span class="tag d'+x.d+'">'+DL[x.d]+'</span>'+(x.s?'<span class="tag src">из канала</span>':"")+'</div><div class="ck'+(dn?" on":"")+'" data-k="'+x.id+'" title="Обсуждена">'+(dn?"✓":"")+'</div></div>'}
+async function tog(id,re){S.done.has(id)?S.done.delete(id):S.done.add(id);await save();re?list():view()}
+function open_(id){S.cur=T.find(x=>x.id===id);S.end=0;view()}
+function view(){
+  clearInterval(S.iv);const x=S.cur,dn=S.done.has(x.id),run=S.end>Date.now();
+  $.innerHTML='<div class="card"><span class="tag">'+x.c+'</span><span class="tag d'+x.d+'">'+DL[x.d]+'</span>'+(x.s?'<span class="tag src">из канала</span>':"")+
+  '<div class="big">'+esc(x.t)+'</div>'+(INFO[x.id]?'<div style="background:var(--sage2);border-radius:12px;padding:12px 14px;margin:0 0 14px;font-size:15px"><b>ℹ️ Инфослайд</b><br>'+esc(INFO[x.id])+'</div>':"")+
+  (S.end?'<div class="tm" id="tm">15:00</div>':"")+
+  '<div class="row"><button class="ghost" id="bk">← К списку</button>'+
+  (S.end?'<button class="ghost" id="rs">Сбросить таймер</button>':'<button class="alt" id="st">▶ Начать обсуждение (15 мин)</button>')+
+  '<button class="'+(dn?"":"ghost")+'" id="dn">'+(dn?"✓ Обсуждена":"Отметить обсуждённой")+'</button></div>'+
+  (S.note?'<p class="note">'+S.note+'</p>':"")+'</div>';
+  document.getElementById("bk").onclick=list;
+  document.getElementById("dn").onclick=()=>tog(x.id,false);
+  const st=document.getElementById("st");if(st)st.onclick=()=>{S.end=Date.now()+900000;view()};
+  const rs=document.getElementById("rs");if(rs)rs.onclick=()=>{S.end=0;view()};
+  if(S.end){const tick=()=>{const el=document.getElementById("tm");if(!el)return clearInterval(S.iv);const ms=S.end-Date.now();
+    if(ms<=0){el.textContent="Время вышло!";el.style.fontSize="38px";clearInterval(S.iv);try{navigator.vibrate&&navigator.vibrate([300,150,300])}catch(e){}return}
+    const s=Math.ceil(ms/1000);el.textContent=String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")};tick();S.iv=setInterval(tick,250)}
+}
+home();
+</script>
+</body>
+</html>
